@@ -9,4 +9,7 @@ Demo project for ACG course, with python3 and boto3
 
 # Run
 Run some EC2 activities, WIP
-`pipenv run python shotty/shotty.py`
+`pipenv run python shotty/shotty.py <command> <--project=PROJECT>`
+
+*command* is list, start or stop
+*PROJECT* is optional, or match your tag key project value.
