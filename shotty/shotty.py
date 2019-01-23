@@ -1,5 +1,6 @@
 import boto3
 import click
+import botocore
 
 session = boto3.Session(profile_name='acg-python')
 ec2 = session.resource('ec2')
@@ -30,7 +31,9 @@ def snapshots():
 @snapshots.command('list')
 @click.option('--project', default=None,
               help="Only snapshots for project (tag Project:<name>)")
-def list_snapshots(project):
+@click.option('--all', 'list_all', default=False, is_flag=True,
+              help="List all snapshots for all volumes, not just the recent one.")
+def list_snapshots(project, list_all):
     "List ec2 snapshots"
     instances = filter_instances(project)
 
@@ -47,6 +50,9 @@ def list_snapshots(project):
                     s.start_time.strftime("%c"),
                     tags.get('Project', '<no project>')
                 )))
+
+                if s.state == 'completed' and not list_all:
+                    break
 
     return
 
@@ -110,7 +116,11 @@ def stop_instances(project):
 
     for i in instances:
         print("Stopping {0}...".format(i.id))
-        i.stop()
+        try:
+            i.stop()
+        except botocore.exceptions.ClientError as err:
+            print(" Could not stop {0}. ".format(i.id) + str(err))
+            continue
 
     return
 
@@ -124,7 +134,11 @@ def start_instances(project):
 
     for i in instances:
         print("Starting {0}...".format(i.id))
-        i.start()
+        try:
+            i.stop()
+        except botocore.exceptions.ClientError as err:
+            print(" Could not start {0}. ".format(i.id) + str(err))
+            continue
 
     return
 
